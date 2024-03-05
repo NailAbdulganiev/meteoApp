@@ -45,7 +45,6 @@ try:
         # Создаем DataFrame из полученных данных
         df = pd.DataFrame(data_dict)
 
-        # Выводим DataFrame
         print(df)
 
 
