@@ -48,7 +48,6 @@ try:
         print(df)
 
 
-
     # # Делаем словарь, где время в часах это ключ, а значение параметра в то время - это values
     # data = response.json()
     # dates = data['dates']
