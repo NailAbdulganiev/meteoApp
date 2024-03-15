@@ -41,14 +41,11 @@ try:
         data = response.json()
         data_dict[stationParameters[parameter]] = data['values']['values']
     print(f"All requests have been sent successfully!")
+
     # Создаем DataFrame из полученных данных
     df = pd.DataFrame(data_dict)
-    # Добавляем к DataFrame дату погодных данных
-    df['Date'] = data['dates']
-    # Удаляем кавычки в названии столбцов
-    df = df.rename(columns=lambda x: x.strip('"'))
     df.to_csv('meteo_data.csv', index=False)
-    print(df)
+    #print(df)
 
 except requests.exceptions.RequestException as e:
     print("Произошла ошибка при отправке запроса:", e)
