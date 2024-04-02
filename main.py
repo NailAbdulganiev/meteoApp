@@ -51,4 +51,4 @@ try:
     print(df)
 
 except requests.exceptions.RequestException as e:
-    print("Произошла ошибка при отправке запроса:", e)
+    print("An error occurred while sending the request:", e)
