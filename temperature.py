@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[128]:
-
-
 import tensorflow as tf
 import numpy as np
 import pandas as pd
@@ -12,15 +6,8 @@ import os
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
-# In[129]:
-
-
 df = pd.read_csv("meteo_data.csv")
 df
-
-
-# In[130]:
-
 
 temp = df['HC_AIR_TEMPERATURE']
 
@@ -38,10 +25,6 @@ plt.legend()
 # Показать график
 plt.show()
 
-
-# In[131]:
-
-
 # [[[1], [2], [3], [4], [5]]] [6]
 # [[[2], [3], [4], [5], [6]]] [7]
 # [[[3], [4], [5], [6], [7]]] [8]
@@ -57,26 +40,14 @@ def df_to_X_y(df, window_size=5):
     y.append(label)
   return np.array(X), np.array(y)
 
-
-# In[132]:
-
-
 WINDOW_SIZE = 5
 X1, y1 = df_to_X_y(temp, WINDOW_SIZE)
 X1.shape, y1.shape
-
-
-# In[133]:
-
 
 X_train1, y_train1 = X1[:10000], y1[:10000]
 X_val1, y_val1 = X1[10000:11500], y1[10000:11500]
 X_test1, y_test1 = X1[11500:], y1[11500:]
 X_train1.shape, y_train1.shape, X_val1.shape, y_val1.shape, X_test1.shape, y_test1.shape
-
-
-# In[134]:
-
 
 model2 = Sequential()
 model2.add(InputLayer((5, 1)))
@@ -86,22 +57,10 @@ model2.add(Dense(8, 'relu'))
 model2.add(Dense(1, 'linear'))
 model2.summary()
 
-
-# In[135]:
-
-
 cp2 = ModelCheckpoint('model2/model2.keras', save_best_only=True)
 model2.compile(loss=MeanSquaredError(), optimizer=Adam(learning_rate=0.0001), metrics=[RootMeanSquaredError()])
 
-
-# In[136]:
-
-
 model2.fit(X_train1, y_train1, validation_data=(X_val1, y_val1), epochs=10, callbacks=[cp2])
-
-
-# In[137]:
-
 
 # Предсказание на тестовом наборе данных
 y_pred1 = model2.predict(X_test1)
@@ -115,10 +74,6 @@ plt.xlabel('Индекс')
 plt.ylabel('Значение')
 plt.legend()
 plt.show()
-
-
-# In[138]:
-
 
 # Оценка MAE
 mae = mean_absolute_error(y_test1, y_pred1)
@@ -136,4 +91,3 @@ print("Средняя абсолютная ошибка (MAE):", mae)
 print("Средняя квадратичная ошибка (MSE):", mse)
 print("Корень из среднеквадратичной ошибки (RMSE):", rmse)
 print("Коэффициент детерминации (R^2):", r2)
-

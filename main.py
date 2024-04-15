@@ -32,7 +32,7 @@ try:
             "meteoId": stationID.get("Сервисный центр").strip('"'),
             "endTime": t,
             "parameterName": stationParameters.get(parameter).strip('"'),
-            "startTime": t - 7 * day
+            "startTime": t - 572 * day
         }
 
         response = requests.post(url, json=msg)
@@ -48,7 +48,7 @@ try:
     df['Date'] = data['dates']
     # Удаляем кавычки в названии столбцов
     df = df.rename(columns=lambda x: x.strip('"'))
-    df.to_csv('week.csv', index=False)
+    df.to_csv('meteo_data.csv', index=False)
     # print(df)
 
 except requests.exceptions.RequestException as e:
