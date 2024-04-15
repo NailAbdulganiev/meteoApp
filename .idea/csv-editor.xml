@@ -10,6 +10,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\meteo_data_30.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
       </map>
     </option>
   </component>

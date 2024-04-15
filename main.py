@@ -30,10 +30,11 @@ try:
         t = int(time.time())
         msg = {
             "meteoId": stationID.get("Сервисный центр").strip('"'),
-            "endTime": t - 15 * day,
+            "endTime": t,
             "parameterName": stationParameters.get(parameter).strip('"'),
-            "startTime": t - 40 * day
+            "startTime": t - 7 * day
         }
+
         response = requests.post(url, json=msg)
         response.raise_for_status()
         print(f"Request {parameter}/7...")
@@ -47,8 +48,8 @@ try:
     df['Date'] = data['dates']
     # Удаляем кавычки в названии столбцов
     df = df.rename(columns=lambda x: x.strip('"'))
-    df.to_csv('meteo_data.csv', index=False)
-    print(df)
+    df.to_csv('week.csv', index=False)
+    # print(df)
 
 except requests.exceptions.RequestException as e:
     print("An error occurred while sending the request:", e)
