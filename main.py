@@ -109,6 +109,11 @@ def open_csv():
         for index, row in df.iterrows():
             tree.insert("", "end", values=list(row))
 
+        # Создаем вертикальную прокрутку
+        vsb = ttk.Scrollbar(window, orient="vertical", command=tree.yview)
+        vsb.pack(side='right', fill='y')
+        tree.configure(yscrollcommand=vsb.set)
+
         # Размещаем Treeview на окне
         tree.pack(fill="both", expand=True)
 
