@@ -6,8 +6,11 @@ import time
 import requests
 import pandas as pd
 import subprocess
-from one_hour.temperature import generate_forecast
-from three_hour.temperature import generate_forecast
+from one_hour.temperature import generate_forecast_1_hour
+from three_hour.temperature import generate_forecast_3_hour
+from one_day.temperature import generate_forecast_1_day
+from three_day.temperature import generate_forecast_3_day
+from one_week.temperature import generate_forecast_1_week
 
 stationID = {
     "Сервисный центр": "00001F76",
@@ -35,90 +38,127 @@ url = 'https://meteoapi.xn--b1ahgiuw.xn--p1ai/parameter/'
 day = 86400
 
 
-def get_data():
-    station = station_combobox.get()
-    parameter = parameter_combobox.get()
-    start_time = start_time_entry.get()
-    end_time = end_time_entry.get()
-    interval = interval_combobox.get()
+class Data():
+    def __init__(self):
+        self.end_time = None
+        self.start_time = None
+        self.station = None
+        self.interval = None
+        self.parameter = None
 
-    if not station or not parameter or not start_time or not end_time or not interval:
-        messagebox.showerror("Ошибка", "Заполните все поля.")
-        return
-    # получение ключей
-    station_value = stationID[station]
-    keyIntervals = next(key for key, value in forecastIntervals.items() if value == interval)
-    keyParameter = next(key for key, value in stationParameters.items() if value == parameter)
+    def get_station(self):
+        self.station = station_combobox.get()
+        return self.station
 
-    try:
-        data_dict = {}
-        for parameter in stationParameters:
-            t = int(time.time()) + 10800
-            msg = {
-                "meteoId": station_value,
-                "endTime": t - int(end_time) * day,
-                "parameterName": stationParameters.get(parameter).strip('"'),
-                "startTime": t - int(start_time) * day
-            }
-            response = requests.post(url, json=msg)
-            response.raise_for_status()
-            print(f"Request {parameter}/7...")
+    def get_parameter(self):
+        self.parameter = parameter_combobox.get()
+        return self.parameter
 
-            data = response.json()
-            data_dict[stationParameters[parameter]] = data['values']['values']
-        data_dict["DATE"] = data['dates']
+    def get_start_time(self):
+        self.start_time = start_time_entry.get()
+        return self.start_time
 
-        df = pd.DataFrame(data_dict)
-        df = df.rename(columns=lambda x: x.strip('"'))
-        df.to_csv('meteo_data_1_week.csv', index=False)
+    def get_end_time(self):
+        self.end_time = end_time_entry.get()
+        return self.end_time
 
-        messagebox.showinfo("Успех", "Данные успешно получены и сохранены в csv-файл.")
-    except requests.exceptions.RequestException as e:
-        messagebox.showerror("Ошибка", f"Произошла ошибка при отправке запроса: {e}")
+    def get_interval(self):
+        self.interval = interval_combobox.get()
+        return self.interval
 
+    def get_data(self):
+        user_data = Data()
+        station = user_data.get_station()
+        start_time = user_data.get_start_time()
+        end_time = user_data.get_end_time()
+        parameter = user_data.get_parameter()
+        interval = user_data.get_interval()
 
-def open_csv():
-    try:
-        if not os.path.exists('meteo_data.csv'):
-            raise FileNotFoundError("Файл 'meteo_data.csv' не найден.")
+        if not station or not parameter or not start_time or not end_time or not interval:
+            messagebox.showerror("Ошибка", "Заполните все поля.")
+            return
 
-        df = pd.read_csv('meteo_data.csv')
+        try:
+            data_dict = {}
+            for parameter in stationParameters:
+                t = int(time.time()) + 10800
+                msg = {
+                    "meteoId": stationID[station],
+                    "endTime": t - int(end_time) * day,
+                    "parameterName": stationParameters.get(parameter).strip('"'),
+                    "startTime": t - int(start_time) * day
+                }
+                response = requests.post(url, json=msg)
+                response.raise_for_status()
+                print(f"Request {parameter}/7...")
 
-        window = tk.Toplevel(root)
+                data = response.json()
+                data_dict[stationParameters[parameter]] = data['values']['values']
+            data_dict["DATE"] = data['dates']
 
-        tree = ttk.Treeview(window)
-        tree["columns"] = list(df.columns)
-        tree["show"] = "headings"
-        for column in df.columns:
-            tree.heading(column, text=column)
+            df = pd.DataFrame(data_dict)
+            df = df.rename(columns=lambda x: x.strip('"'))
+            df.to_csv('meteo_data_1_week.csv', index=False)
 
-        for index, row in df.iterrows():
-            tree.insert("", "end", values=list(row))
+            messagebox.showinfo("Успех", "Данные успешно получены и сохранены в csv-файл.")
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Ошибка", f"Произошла ошибка при отправке запроса: {e}")
 
-        vsb = ttk.Scrollbar(window, orient="vertical", command=tree.yview)
-        vsb.pack(side='right', fill='y')
-        tree.configure(yscrollcommand=vsb.set)
-        tree.pack(fill="both", expand=True)
+    def open_csv(self):
+        try:
+            if not os.path.exists('meteo_data.csv'):
+                raise FileNotFoundError("Файл 'meteo_data.csv' не найден.")
 
-        close_button = ttk.Button(window, text="Закрыть", command=window.destroy)
-        close_button.pack(pady=10)
+            df = pd.read_csv('meteo_data.csv')
 
-    except FileNotFoundError as e:
-        messagebox.showerror("Ошибка", str(e))
-    except Exception as e:
-        messagebox.showerror("Ошибка", f"Произошла ошибка: {e}")
+            window = tk.Toplevel(root)
 
-def get_forecast():
-    try:
-        forecast = generate_forecast()  # Вызываем функцию для получения прогноза
-        messagebox.showinfo("Прогноз", forecast)  # Отображаем прогноз в messagebox
-    except Exception as e:
-        messagebox.showerror("Ошибка", f"Произошла ошибка при получении прогноза: {e}")
+            tree = ttk.Treeview(window)
+            tree["columns"] = list(df.columns)
+            tree["show"] = "headings"
+            for column in df.columns:
+                tree.heading(column, text=column)
+
+            for index, row in df.iterrows():
+                tree.insert("", "end", values=list(row))
+
+            vsb = ttk.Scrollbar(window, orient="vertical", command=tree.yview)
+            vsb.pack(side='right', fill='y')
+            tree.configure(yscrollcommand=vsb.set)
+            tree.pack(fill="both", expand=True)
+
+            close_button = ttk.Button(window, text="Закрыть", command=window.destroy)
+            close_button.pack(pady=10)
+
+        except FileNotFoundError as e:
+            messagebox.showerror("Ошибка", str(e))
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Произошла ошибка: {e}")
+
+    def get_forecast(self):
+        user_data = Data()
+        parameter = user_data.get_parameter()
+        interval = user_data.get_interval()
+        try:
+            if interval == "1 час":
+                forecast = generate_forecast_1_hour(parameter)
+            elif interval == "3 часа":
+                forecast = generate_forecast_3_hour(parameter)
+            elif interval == "1 день":
+                forecast = generate_forecast_1_day(parameter)
+            elif interval == "3 дня":
+                forecast = generate_forecast_3_day(parameter)
+            elif interval == "1 неделя":
+                forecast = generate_forecast_1_week(parameter)
+            messagebox.showinfo("Прогноз", forecast)  # Отображаем прогноз в messagebox
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Произошла ошибка при получении прогноза: {e}")
+
 
 root = tk.Tk()
 root.title("Погода")
 root.geometry("600x450")
-
+data = Data()
 station_label = tk.Label(root, text="Выберите станцию:")
 station_label.pack(pady=5)
 station_combobox = ttk.Combobox(root, values=list(stationID.keys()))
@@ -146,14 +186,14 @@ interval_label.pack(pady=5)
 interval_combobox = ttk.Combobox(root, values=list(forecastIntervals.values()))
 interval_combobox.pack(pady=5)
 
-forecast_button = tk.Button(root, text="Получить данные", command=get_data)
+forecast_button = tk.Button(root, text="Получить данные", command=data.get_data)
 forecast_button.pack(pady=10)
 
-open_button = tk.Button(root, text="Посмотреть данные", command=open_csv)
+open_button = tk.Button(root, text="Посмотреть данные", command=data.open_csv)
 open_button.pack(pady=5)
 
 # Кнопка для получения прогноза
-predict_button = tk.Button(root, text="Получить прогноз", command=get_forecast)
+predict_button = tk.Button(root, text="Получить прогноз", command=data.get_forecast)
 predict_button.pack(pady=10)
 
 root.mainloop()

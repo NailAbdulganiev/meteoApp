@@ -14,7 +14,7 @@ from keras.src.saving import load_model
 # from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
-def generate_forecast():
+def generate_forecast_1_hour(parameter):
     # Определяем путь к файлу относительно местоположения скрипта
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_file = os.path.join(base_dir, "../meteo_data.csv")
@@ -23,13 +23,13 @@ def generate_forecast():
     df.index = pd.to_datetime(df.DATE)
     del df['DATE']
 
-    required_cols = ['HC_AIR_TEMPERATURE']
+    required_cols = [parameter]
     df = df[required_cols]
     #print(df)
 
-    temp = df['HC_AIR_TEMPERATURE']
+    temp = df[parameter]
 
-    def df_to_X_y(df, window_size=24):
+    def df_to_X_y(df, window_size=10):
         df_as_np = df.to_numpy()
         X = []
         y = []
@@ -40,7 +40,7 @@ def generate_forecast():
             y.append(label)
         return np.array(X), np.array(y)
 
-    WINDOW_SIZE = 24
+    WINDOW_SIZE = 10
     X1, y1 = df_to_X_y(temp, WINDOW_SIZE)
 
     X_train1, y_train1 = X1[:20000], y1[:20000]
@@ -50,7 +50,7 @@ def generate_forecast():
 
     model2 = load_model(os.path.join(base_dir, 'model2/model2-temperature.keras'))
 
-    def predict_future(model, last_known_data, last_known_dates, steps=3, window_size=24):
+    def predict_future(model, last_known_data, last_known_dates, steps=3, window_size=10):
         predictions = []
         future_dates = pd.date_range(start=last_known_dates[-1], periods=steps + 1, freq='h')[1:]
 
@@ -72,8 +72,3 @@ def generate_forecast():
 
     forecast_result = "\n".join([f"{date}: {pred:.2f}" for date, pred in zip(future_dates, predictions)])
     return forecast_result
-
-
-if __name__ == "__main__":
-    forecast = generate_forecast()
-    print(forecast)

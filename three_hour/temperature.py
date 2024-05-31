@@ -14,7 +14,7 @@ from keras.src.saving import load_model
 # from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
-def generate_forecast():
+def generate_forecast_3_hour(parameter):
     # Определяем путь к файлу относительно местоположения скрипта
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_file = os.path.join(base_dir, "../meteo_data.csv")
@@ -23,11 +23,11 @@ def generate_forecast():
     df.index = pd.to_datetime(df.DATE)
     del df['DATE']
 
-    required_cols = ['HC_AIR_TEMPERATURE']
+    required_cols = [parameter]
     df = df[required_cols]
     #print(df)
 
-    temp = df['HC_AIR_TEMPERATURE']
+    temp = df[parameter]
 
     def df_to_X_y(df, window_size=24):
         df_as_np = df.to_numpy()
@@ -72,8 +72,3 @@ def generate_forecast():
 
     forecast_result = "\n".join([f"{date}: {pred:.2f}" for date, pred in zip(future_dates, predictions)])
     return forecast_result
-
-
-if __name__ == "__main__":
-    forecast = generate_forecast()
-    print(forecast)
