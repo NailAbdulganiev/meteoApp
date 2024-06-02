@@ -14,7 +14,7 @@ from keras.src.saving import load_model
 # from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
-def generate_forecast_3_day(parameter):
+def generate_forecast_1_week(parameter):
     # Определяем путь к файлу относительно местоположения скрипта
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_file = os.path.join(base_dir, "../meteo_data.csv")
@@ -23,11 +23,12 @@ def generate_forecast_3_day(parameter):
     df.index = pd.to_datetime(df.DATE)
     del df['DATE']
 
-    required_cols = [parameter]
+    required_cols = ['HC_AIR_TEMPERATURE']
     df = df[required_cols]
-    df = df.resample('3h').mean()
-    temp = df[parameter]
-    def df_to_X_y(df, window_size=24):
+    df = df.resample('6h').mean()
+    temp = df['HC_AIR_TEMPERATURE']
+
+    def df_to_X_y(df, window_size=28):
         df_as_np = df.to_numpy()
         X = []
         y = []
@@ -38,15 +39,14 @@ def generate_forecast_3_day(parameter):
             y.append(label)
         return np.array(X), np.array(y)
 
-    WINDOW_SIZE = 24
+    WINDOW_SIZE = 28
     X1, y1 = df_to_X_y(temp, WINDOW_SIZE)
 
-    model_path = "model2/model2-" + parameter + ".keras"
-    model2 = load_model(os.path.join(base_dir, model_path))
+    model2 = load_model(os.path.join(base_dir, 'model2/model2-HC_AIR_TEMPERATURE.keras'))
 
-    def predict_future(model, last_known_data, last_known_dates, steps=3, window_size=24):
+    def predict_future(model, last_known_data, last_known_dates, steps=3, window_size=28):
         predictions = []
-        future_dates = pd.date_range(start=last_known_dates[-1], periods=steps + 1, freq='3h')[1:]
+        future_dates = pd.date_range(start=last_known_dates[-1], periods=steps + 1, freq='6h')[1:]
 
         current_data = last_known_data.tolist()
 
@@ -61,7 +61,7 @@ def generate_forecast_3_day(parameter):
     last_known_data = temp.values[-WINDOW_SIZE:]
     last_known_dates = temp.index[-WINDOW_SIZE:]
 
-    future_steps = 24
+    future_steps = 28
     future_dates, predictions = predict_future(model2, last_known_data, last_known_dates, future_steps, WINDOW_SIZE)
 
     forecast_result = "\n".join([f"{date}: {pred:.2f}" for date, pred in zip(future_dates, predictions)])

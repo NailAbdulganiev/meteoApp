@@ -48,7 +48,7 @@ def generate_forecast_3_hour(parameter):
     X_test1, y_test1 = X1[23000:], y1[23000:]
     #print(X_train1.shape, y_train1.shape, X_val1.shape, y_val1.shape, X_test1.shape, y_test1.shape)
 
-    model2 = load_model(os.path.join(base_dir, 'model2/model2-temperature.keras'))
+    model2 = load_model(os.path.join(base_dir, 'model2/model2-HC_AIR_TEMPERATURE.keras'))
 
     def predict_future(model, last_known_data, last_known_dates, steps=3, window_size=24):
         predictions = []

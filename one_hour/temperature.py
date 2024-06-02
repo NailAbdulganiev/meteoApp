@@ -29,7 +29,7 @@ def generate_forecast_1_hour(parameter):
 
     temp = df[parameter]
 
-    def df_to_X_y(df, window_size=10):
+    def df_to_X_y(df, window_size=24):
         df_as_np = df.to_numpy()
         X = []
         y = []
@@ -40,7 +40,7 @@ def generate_forecast_1_hour(parameter):
             y.append(label)
         return np.array(X), np.array(y)
 
-    WINDOW_SIZE = 10
+    WINDOW_SIZE = 24
     X1, y1 = df_to_X_y(temp, WINDOW_SIZE)
 
     X_train1, y_train1 = X1[:20000], y1[:20000]
@@ -48,9 +48,9 @@ def generate_forecast_1_hour(parameter):
     X_test1, y_test1 = X1[23000:], y1[23000:]
     #print(X_train1.shape, y_train1.shape, X_val1.shape, y_val1.shape, X_test1.shape, y_test1.shape)
 
-    model2 = load_model(os.path.join(base_dir, 'model2/model2-temperature.keras'))
+    model2 = load_model(os.path.join(base_dir, 'model2/model2-HC_AIR_TEMPERATURE.keras'))
 
-    def predict_future(model, last_known_data, last_known_dates, steps=3, window_size=10):
+    def predict_future(model, last_known_data, last_known_dates, steps=3, window_size=24):
         predictions = []
         future_dates = pd.date_range(start=last_known_dates[-1], periods=steps + 1, freq='h')[1:]
 

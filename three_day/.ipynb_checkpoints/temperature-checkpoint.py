@@ -23,10 +23,10 @@ def generate_forecast_3_day(parameter):
     df.index = pd.to_datetime(df.DATE)
     del df['DATE']
 
-    required_cols = [parameter]
+    required_cols = ['HC_AIR_TEMPERATURE']
     df = df[required_cols]
     df = df.resample('3h').mean()
-    temp = df[parameter]
+    temp = df['HC_AIR_TEMPERATURE']
     def df_to_X_y(df, window_size=24):
         df_as_np = df.to_numpy()
         X = []
@@ -41,8 +41,7 @@ def generate_forecast_3_day(parameter):
     WINDOW_SIZE = 24
     X1, y1 = df_to_X_y(temp, WINDOW_SIZE)
 
-    model_path = "model2/model2-" + parameter + ".keras"
-    model2 = load_model(os.path.join(base_dir, model_path))
+    model2 = load_model(os.path.join(base_dir, 'model2/model2-HC_AIR_TEMPERATURE.keras'))
 
     def predict_future(model, last_known_data, last_known_dates, steps=3, window_size=24):
         predictions = []

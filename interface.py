@@ -6,9 +6,7 @@ import time
 import requests
 import pandas as pd
 import subprocess
-from one_hour.temperature import generate_forecast_1_hour
-from three_hour.temperature import generate_forecast_3_hour
-from one_day.temperature import generate_forecast_1_day
+from one_day.temperature import generate_forecast
 from three_day.temperature import generate_forecast_3_day
 from one_week.temperature import generate_forecast_1_week
 
@@ -19,20 +17,20 @@ stationID = {
     "Отделение 12": "00001F7D",
 }
 stationParameters = {
-    1: "SOLAR_RADIATION",
-    2: "PRECIPITATION",
-    3: "WIND_SPEED",
-    4: "LEAF_WETNESS",
-    5: "HC_AIR_TEMPERATURE",
-    6: "HC_RELATIVE_HUMIDITY",
-    7: "DEW_POINT"
+    "Солнечная радиация": "SOLAR_RADIATION",
+    "Осадки": "PRECIPITATION",
+    "Скорость ветра": "WIND_SPEED",
+    "Влажность листа": "LEAF_WETNESS",
+    "Температура воздуха": "HC_AIR_TEMPERATURE",
+    "Относительная влажность": "HC_RELATIVE_HUMIDITY",
+    "Точка росы": "DEW_POINT"
 }
 forecastIntervals = {
     1: "1 час",
-    2: "3 часа",
-    3: "1 день",
-    4: "3 дня",
-    5: "1 неделя"
+    3: "3 часа",
+    24: "1 день",
+    72: "3 дня",
+    168: "1 неделя"
 }
 url = 'https://meteoapi.xn--b1ahgiuw.xn--p1ai/parameter/'
 day = 86400
@@ -51,7 +49,7 @@ class Data():
         return self.station
 
     def get_parameter(self):
-        self.parameter = parameter_combobox.get()
+        self.parameter = stationParameters.get(parameter_combobox.get(), "Key not found")  # Получение значения по ключу
         return self.parameter
 
     def get_start_time(self):
@@ -80,6 +78,7 @@ class Data():
 
         try:
             data_dict = {}
+            i = 1
             for parameter in stationParameters:
                 t = int(time.time()) + 10800
                 msg = {
@@ -90,15 +89,15 @@ class Data():
                 }
                 response = requests.post(url, json=msg)
                 response.raise_for_status()
-                print(f"Request {parameter}/7...")
-
+                print(f"Request {i}/7...")
+                i += 1
                 data = response.json()
                 data_dict[stationParameters[parameter]] = data['values']['values']
             data_dict["DATE"] = data['dates']
 
             df = pd.DataFrame(data_dict)
             df = df.rename(columns=lambda x: x.strip('"'))
-            df.to_csv('meteo_data_1_week.csv', index=False)
+            df.to_csv('meteo_data.csv', index=False)
 
             messagebox.showinfo("Успех", "Данные успешно получены и сохранены в csv-файл.")
         except requests.exceptions.RequestException as e:
@@ -139,13 +138,10 @@ class Data():
         user_data = Data()
         parameter = user_data.get_parameter()
         interval = user_data.get_interval()
+        keyInterval = next(key for key, value in forecastIntervals.items() if value == interval)
         try:
-            if interval == "1 час":
-                forecast = generate_forecast_1_hour(parameter)
-            elif interval == "3 часа":
-                forecast = generate_forecast_3_hour(parameter)
-            elif interval == "1 день":
-                forecast = generate_forecast_1_day(parameter)
+            if interval == "1 час" or interval == "3 часа" or interval == "1 день":
+                forecast = generate_forecast(parameter, keyInterval)
             elif interval == "3 дня":
                 forecast = generate_forecast_3_day(parameter)
             elif interval == "1 неделя":
@@ -159,41 +155,41 @@ root = tk.Tk()
 root.title("Погода")
 root.geometry("600x450")
 data = Data()
-station_label = tk.Label(root, text="Выберите станцию:")
+station_label = tk.Label(root, text="Выберите станцию:", width=22)
 station_label.pack(pady=5)
-station_combobox = ttk.Combobox(root, values=list(stationID.keys()))
+station_combobox = ttk.Combobox(root, values=list(stationID.keys()), width=22)
 station_combobox.pack(pady=5)
 
-start_time_label = tk.Label(root, text="Введите StartTime (в днях):")
+start_time_label = tk.Label(root, text="Введите StartTime (в днях):", width=22)
 start_time_label.pack(pady=5)
-start_time_entry = tk.Entry(root)
+start_time_entry = tk.Entry(root, width=25)
 start_time_entry.pack(pady=5)
-start_time_entry.insert(0, "730")
+start_time_entry.insert(0, "1460")
 
-end_time_label = tk.Label(root, text="Введите EndTime (в днях):")
+end_time_label = tk.Label(root, text="Введите EndTime (в днях):", width=22)
 end_time_label.pack(pady=5)
-end_time_entry = tk.Entry(root)
+end_time_entry = tk.Entry(root, width=25)
 end_time_entry.pack(pady=5)
 end_time_entry.insert(0, "0")
 
-parameter_label = tk.Label(root, text="Выберите параметр погоды:")
+parameter_label = tk.Label(root, text="Выберите параметр погоды:", width=22)
 parameter_label.pack(pady=5)
-parameter_combobox = ttk.Combobox(root, values=list(stationParameters.values()))
+parameter_combobox = ttk.Combobox(root, values=list(stationParameters.keys()), width=22)
 parameter_combobox.pack(pady=5)
 
-interval_label = tk.Label(root, text="Интервал прогноза:")
+interval_label = tk.Label(root, text="Интервал прогноза:", width=22)
 interval_label.pack(pady=5)
-interval_combobox = ttk.Combobox(root, values=list(forecastIntervals.values()))
+interval_combobox = ttk.Combobox(root, values=list(forecastIntervals.values()), width=22)
 interval_combobox.pack(pady=5)
 
-forecast_button = tk.Button(root, text="Получить данные", command=data.get_data)
+forecast_button = tk.Button(root, text="Получить данные", command=data.get_data, width=22)
 forecast_button.pack(pady=10)
 
-open_button = tk.Button(root, text="Посмотреть данные", command=data.open_csv)
+open_button = tk.Button(root, text="Посмотреть данные", command=data.open_csv, width=22)
 open_button.pack(pady=5)
 
 # Кнопка для получения прогноза
-predict_button = tk.Button(root, text="Получить прогноз", command=data.get_forecast)
+predict_button = tk.Button(root, text="Получить прогноз", command=data.get_forecast, width=22)
 predict_button.pack(pady=10)
 
 root.mainloop()
