@@ -75,8 +75,8 @@ def get_data():
         messagebox.showerror("Ошибка", "Заполните все поля.")
         return
 
-    if not start_time.isdigit() and not end_time.isdigit():
-        messagebox.showerror("Ошибка", "Поля StartTime и EndTime должны быть заполнены целыми числами.")
+    if not start_time.isdigit() and not end_time.isdigit() and int(start_time) > 0 and int(end_time) > 0:
+        messagebox.showerror("Ошибка", "Поля StartTime и EndTime должны быть заполнены целыми, неотрицательными числами.")
         return
 
     try:
