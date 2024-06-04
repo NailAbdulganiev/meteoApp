@@ -29,27 +29,28 @@ def generate_forecast(parameter, interval):
 
     temp = df[parameter]
 
-    def df_to_X_y(df, window_size=24):
-        df_as_np = df.to_numpy()
-        X = []
-        y = []
-        for i in range(len(df_as_np) - window_size):
-            row = [[a] for a in df_as_np[i:i + window_size]]
-            X.append(row)
-            label = df_as_np[i + window_size]
-            y.append(label)
-        return np.array(X), np.array(y)
-
-    WINDOW_SIZE = 24
-    X1, y1 = df_to_X_y(temp, WINDOW_SIZE)
-
-    X_train1, y_train1 = X1[:20000], y1[:20000]
-    X_val1, y_val1 = X1[20000:23000], y1[20000:23000]
-    X_test1, y_test1 = X1[23000:], y1[23000:]
-    #print(X_train1.shape, y_train1.shape, X_val1.shape, y_val1.shape, X_test1.shape, y_test1.shape)
-
+    # def df_to_X_y(df, window_size=24):
+    #     df_as_np = df.to_numpy()
+    #     X = []
+    #     y = []
+    #     for i in range(len(df_as_np) - window_size):
+    #         row = [[a] for a in df_as_np[i:i + window_size]]
+    #         X.append(row)
+    #         label = df_as_np[i + window_size]
+    #         y.append(label)
+    #     return np.array(X), np.array(y)
+    #
+    #
+    # X1, y1 = df_to_X_y(temp, WINDOW_SIZE)
+    #
+    # X_train1, y_train1 = X1[:20000], y1[:20000]
+    # X_val1, y_val1 = X1[20000:23000], y1[20000:23000]
+    # X_test1, y_test1 = X1[23000:], y1[23000:]
+    #
     model_path = "model2/model2-" + parameter + ".keras"
     model2 = load_model(os.path.join(base_dir, model_path))
+
+    WINDOW_SIZE = 24
 
     def predict_future(model, last_known_data, last_known_dates, steps=3, window_size=24):
         predictions = []

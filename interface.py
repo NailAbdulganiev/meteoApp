@@ -75,7 +75,7 @@ def get_data():
         messagebox.showerror("Ошибка", "Заполните все поля.")
         return
 
-    if not start_time.isdigit() and not end_time.isdigit() and int(start_time) > 0 and int(end_time) > 0:
+    if not start_time.isdigit() or not end_time.isdigit() or int(start_time) > 0 or int(end_time) > 0:
         messagebox.showerror("Ошибка", "Поля StartTime и EndTime должны быть заполнены целыми, неотрицательными числами.")
         return
 
@@ -102,7 +102,7 @@ def get_data():
         df = df.rename(columns=lambda x: x.strip('"'))
         df.to_csv('meteo_data.csv', index=False)
 
-        messagebox.showinfo("Успех", "Данные успешно получены и сохранены в csv-файл.")
+        messagebox.showinfo("Успех", "Данные успешно получены и сохранены в файл meteo_data.csv.")
     except requests.exceptions.RequestException as e:
         messagebox.showerror("Ошибка", f"Произошла ошибка при отправке запроса: {e}")
 
@@ -146,7 +146,7 @@ def get_forecast():
     if not os.path.exists('meteo_data.csv'):
         raise messagebox.showerror("Ошибка", "Файл 'meteo_data.csv' не найден. Получите данные с метеостанции.")
     if not parameter or not interval:
-        raise messagebox.showerror("Ошибка", "Заполните поля 'Параметр' и 'Интервал'.")
+        raise messagebox.showerror("Ошибка", "Заполните поля 'Параметр' и 'Длительность'.")
 
     keyInterval = next(key for key, value in forecastIntervals.items() if value == interval)
     if parameter and interval:
@@ -174,7 +174,7 @@ start_time_label = tk.Label(root, text="Введите StartTime (в днях):"
 start_time_label.pack(pady=5)
 start_time_entry = tk.Entry(root, width=25)
 start_time_entry.pack(pady=5)
-start_time_entry.insert(0, "1460")
+start_time_entry.insert(0, "30")
 
 end_time_label = tk.Label(root, text="Введите EndTime (в днях):", width=22)
 end_time_label.pack(pady=5)
